@@ -1,0 +1,1 @@
+export { SettingsHomeScreen } from './SettingsHomeScreen';
