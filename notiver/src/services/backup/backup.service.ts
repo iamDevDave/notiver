@@ -1,27 +1,31 @@
 import * as FileSystem from 'expo-file-system';
+import { APP_VERSION } from '../../core/constants';
+import { ImportError } from '../../core/errors';
 import { db, expoDb } from '../../database';
 import {
-  notifications,
-  rules,
-  ruleConditions,
-  ruleActions,
-  ruleExecutions,
-  analytics,
-  focusSessions,
-  settings,
-  aiPredictions,
+    aiPredictions,
+    analytics,
+    focusSessions,
+    notifications,
+    ruleActions,
+    ruleConditions,
+    ruleExecutions,
+    rules,
+    settings,
 } from '../../database/schema';
-import { ImportError } from '../../core/errors';
-import { APP_VERSION } from '../../core/constants';
 import {
-  BACKUP_MAGIC,
-  BACKUP_VERSION,
-  REQUIRED_TABLES,
-  type BackupFile,
-  type BackupData,
-  type ExportResult,
-  type ImportResult,
+    BACKUP_MAGIC,
+    BACKUP_VERSION,
+    REQUIRED_TABLES,
+    type BackupData,
+    type BackupFile,
+    type ExportResult,
+    type ImportResult,
 } from './types';
+
+// Some Expo platform types may be unavailable in this environment; use an
+// `any` cast for runtime properties we rely on (documentDirectory, EncodingType).
+const _FileSystem: any = FileSystem;
 
 /**
  * Service for exporting and importing the complete database as a JSON backup file.
@@ -31,7 +35,7 @@ import {
  *         and rolls back on any failure to leave the database unchanged.
  */
 export class BackupService {
-  private readonly backupDir = `${FileSystem.documentDirectory}backups/`;
+  private readonly backupDir = `${_FileSystem.documentDirectory ?? ''}backups/`;
 
   /**
    * Exports the entire database to a JSON backup file.
@@ -113,7 +117,7 @@ export class BackupService {
     }
     const files = await FileSystem.readDirectoryAsync(this.backupDir);
     return files
-      .filter((f) => f.endsWith('.json'))
+      .filter((f: string) => f.endsWith('.json'))
       .sort()
       .reverse();
   }

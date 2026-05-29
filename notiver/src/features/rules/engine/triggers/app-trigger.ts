@@ -1,5 +1,5 @@
 import type { ParsedNotification } from '../../../../services/notification/parser';
-import type { TriggerHandler, AppTriggerConfig } from './types';
+import type { AppTriggerConfig, TriggerHandler } from './types';
 
 /**
  * App trigger handler.
@@ -13,12 +13,19 @@ export class AppTriggerHandler implements TriggerHandler {
       return false;
     }
 
-    if (triggerConfig.apps.length === 0) {
+    const normalizedPackageName = notification.packageName?.toLowerCase?.();
+    if (!normalizedPackageName) {
       return false;
     }
 
-    return triggerConfig.apps.some(
-      (app) => app.toLowerCase() === notification.packageName.toLowerCase()
-    );
+    const normalizedApps = triggerConfig.apps
+      .filter((app): app is string => typeof app === 'string' && app.trim().length > 0)
+      .map((app) => app.toLowerCase());
+
+    if (normalizedApps.length === 0) {
+      return false;
+    }
+
+    return normalizedApps.includes(normalizedPackageName);
   }
 }

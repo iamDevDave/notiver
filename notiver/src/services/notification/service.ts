@@ -11,14 +11,14 @@
  * Instrumented with performance timing to detect threshold violations.
  */
 
+import { notificationRepository } from '../../database/repositories';
 import { notificationListenerBridge } from '../../native/notification-listener';
 import type { RawNotification } from '../../native/notification-listener/types';
 import { eventBus } from '../event-bus';
 import { AppEvents } from '../event-bus/types';
-import { notificationRepository } from '../../database/repositories';
-import { parseNotification } from './parser';
-import type { ParsedNotification } from './parser';
 import { createPipelineTimer } from '../performance';
+import type { ParsedNotification } from './parser';
+import { parseNotification } from './parser';
 
 class NotificationService {
   private unsubscribe: (() => void) | null = null;
@@ -82,6 +82,7 @@ class NotificationService {
 
       // Step 2: Persist to database
       await notificationRepository.create({
+        id: parsed.id,
         packageName: parsed.packageName,
         appName: parsed.appName,
         title: parsed.title,
@@ -93,7 +94,7 @@ class NotificationService {
         rawData: parsed.rawData,
         receivedAt: parsed.receivedAt,
         category: null,
-      });
+      } as any);
       timer.markStore();
 
       // Step 3: Emit events for downstream processing

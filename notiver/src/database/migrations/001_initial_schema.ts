@@ -131,13 +131,12 @@ export const migration001InitialSchema: Migration = {
 
     // --- settings table ---
     db.execSync(`
-      CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY NOT NULL,
-        value TEXT NOT NULL,
-        updated_at INTEGER NOT NULL
-      );
-    `);
-
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+`);
     // --- ai_predictions table ---
     db.execSync(`
       CREATE TABLE IF NOT EXISTS ai_predictions (

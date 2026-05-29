@@ -1,3 +1,4 @@
+import { randomUUID } from '@/src/utils/uuid';
 import type { RawNotification } from '../../native/notification-listener/types';
 
 /**
@@ -113,7 +114,7 @@ export function parseNotification(raw: RawNotification): ParsedNotification {
   const now = new Date();
 
   return {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     packageName: normalizeRequiredString(raw.packageName, MAX_PACKAGE_NAME_LENGTH, 'unknown'),
     appName: normalizeRequiredString(raw.appName, MAX_APP_NAME_LENGTH, 'Unknown App'),
     title: normalizeStringField(raw.title, MAX_TITLE_LENGTH),

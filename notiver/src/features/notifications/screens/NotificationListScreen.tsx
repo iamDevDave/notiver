@@ -1,23 +1,23 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
-import { Filter, Bell } from 'lucide-react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { FlashList } from '@shopify/flash-list';
+import { Bell, Filter } from 'lucide-react-native';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
-import { Screen } from '@/src/shared/components/templates/Screen';
-import { Header } from '@/src/shared/components/templates/Header';
-import { EmptyState } from '@/src/shared/components/templates/EmptyState';
-import { LoadingState } from '@/src/shared/components/templates/LoadingState';
-import { SearchBar } from '@/src/shared/components/molecules/SearchBar';
 import { Badge } from '@/src/shared/components/atoms/Badge';
+import { SearchBar } from '@/src/shared/components/molecules/SearchBar';
 import {
-  NotificationCard,
-  type NotificationCardData,
+    NotificationCard,
+    type NotificationCardData,
 } from '@/src/shared/components/organisms/NotificationCard';
+import { EmptyState } from '@/src/shared/components/templates/EmptyState';
+import { Header } from '@/src/shared/components/templates/Header';
+import { LoadingState } from '@/src/shared/components/templates/LoadingState';
+import { Screen } from '@/src/shared/components/templates/Screen';
 import { FilterSheet } from '../components/FilterSheet';
 import { SortSelector } from '../components/SortSelector';
-import { useNotificationStore } from '../store/notification.store';
 import { useNotifications } from '../hooks/use-notifications';
+import { useNotificationStore } from '../store/notification.store';
 
 /**
  * Memoized notification card wrapper to prevent unnecessary re-renders.
@@ -215,7 +215,7 @@ export function NotificationListScreen() {
         <FlashList
           data={notifications}
           renderItem={renderNotificationItem}
-          estimatedItemSize={100}
+          {...({ estimatedItemSize: 100 } as any)}
           keyExtractor={keyExtractor}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}

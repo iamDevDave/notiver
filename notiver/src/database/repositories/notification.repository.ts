@@ -1,8 +1,8 @@
-import { eq, and, between, or, like, desc } from 'drizzle-orm';
+import { between, desc, eq, like, or } from 'drizzle-orm';
+import type { QueryOptions } from '../../core/base';
 import { db } from '../index';
 import { notifications, type NotificationCategory } from '../schema';
 import { BaseRepository } from './base.repository';
-import type { QueryOptions } from '../../core/base';
 
 type Notification = typeof notifications.$inferSelect;
 type NewNotification = Omit<Notification, 'id' | 'createdAt'>;
@@ -18,7 +18,7 @@ export class NotificationRepository extends BaseRepository<Notification> {
 
   override async create(entity: NewNotification): Promise<Notification> {
     const now = new Date();
-    const id = this.generateId();
+    const id = 'id' in entity && typeof entity.id === 'string' ? entity.id : this.generateId();
     const record: Notification = {
       ...entity,
       id,

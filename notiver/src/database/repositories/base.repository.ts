@@ -1,7 +1,8 @@
+import { randomUUID } from '@/src/utils/uuid';
 import { eq, sql, type SQL } from 'drizzle-orm';
 import type { SQLiteTableWithColumns } from 'drizzle-orm/sqlite-core';
+import type { FilterOptions, IRepository, QueryOptions } from '../../core/base';
 import { db } from '../index';
-import type { IRepository, QueryOptions, FilterOptions } from '../../core/base';
 
 /**
  * Abstract base repository providing common CRUD operations for all entities.
@@ -13,7 +14,7 @@ export abstract class BaseRepository<T extends Record<string, unknown>, ID = str
   constructor(protected readonly table: SQLiteTableWithColumns<any>) {}
 
   protected generateId(): string {
-    return crypto.randomUUID();
+    return randomUUID();
   }
 
   async findById(id: ID): Promise<T | null> {

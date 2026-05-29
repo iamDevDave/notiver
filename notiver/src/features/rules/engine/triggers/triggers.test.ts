@@ -1,11 +1,11 @@
 import type { ParsedNotification } from '../../../../services/notification/parser';
 import { AppTriggerHandler } from './app-trigger';
-import { KeywordTriggerHandler } from './keyword-trigger';
 import { ContactTriggerHandler } from './contact-trigger';
-import { TimeTriggerHandler } from './time-trigger';
-import { LocationTriggerHandler } from './location-trigger';
 import { FrequencyTriggerHandler } from './frequency-trigger';
-import { triggerRegistry, getTriggerHandler } from './index';
+import { getTriggerHandler, triggerRegistry } from './index';
+import { KeywordTriggerHandler } from './keyword-trigger';
+import { LocationTriggerHandler } from './location-trigger';
+import { TimeTriggerHandler } from './time-trigger';
 
 function createNotification(overrides: Partial<ParsedNotification> = {}): ParsedNotification {
   return {
@@ -61,6 +61,12 @@ describe('AppTriggerHandler', () => {
     const notification = createNotification();
     const config = { apps: 'com.whatsapp' };
     expect(handler.evaluate(notification, config as any)).toBe(false);
+  });
+
+  it('ignores invalid app entries inside the array', () => {
+    const notification = createNotification({ packageName: 'com.whatsapp' });
+    const config = { apps: ['com.telegram', undefined, null, '  ', 'COM.WHATSAPP'] };
+    expect(handler.evaluate(notification, config as any)).toBe(true);
   });
 });
 

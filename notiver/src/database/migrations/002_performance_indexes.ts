@@ -19,7 +19,7 @@ export const migration002PerformanceIndexes: Migration = {
   up: (db) => {
     // Index for rules.findActive() — filters by is_active, sorts by priority
     db.execSync(
-      `CREATE INDEX IF NOT EXISTS idx_rules_active_priority ON rules(is_active, priority);`
+      `CREATE INDEX IF NOT EXISTS idx_rules_trigger_type ON rules(trigger_type);`
     );
 
     // Index for rules.findByTriggerType()

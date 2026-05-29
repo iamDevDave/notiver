@@ -137,7 +137,7 @@ export function createPipelineTimer(): {
         name: 'notification:pipeline',
         durationMs: metrics.totalMs,
         timestamp: Date.now(),
-        metadata: metrics,
+        metadata: metrics as unknown as Record<string, unknown>,
       });
 
       if (totalMs > PIPELINE_THRESHOLD_MS) {
@@ -160,7 +160,7 @@ export function logRuleEvalMetrics(metrics: RuleEvalMetrics): void {
     name: 'rule:evaluation',
     durationMs: metrics.totalMs,
     timestamp: Date.now(),
-    metadata: metrics,
+    metadata: metrics as unknown as Record<string, unknown>,
   });
 
   if (metrics.totalMs > RULE_EVAL_THRESHOLD_MS) {
