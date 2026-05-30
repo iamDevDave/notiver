@@ -1,17 +1,17 @@
 import { db } from '../../../database/index';
-import { ruleConditions, ruleActions } from '../../../database/schema';
-import { ruleRepository, ruleExecutionRepository } from '../../../database/repositories';
-import { eventBus, AppEvents } from '../../../services/event-bus';
-import type { Unsubscribe } from '../../../services/event-bus';
-import type { ParsedNotification } from '../../../services/notification/parser';
-import { getTriggerHandler } from './triggers';
-import { evaluateConditions } from './conditions';
-import type { RuleCondition } from './conditions';
-import { executeActions } from './actions';
-import type { ActionType, RuleAction } from './actions';
+import { ruleExecutionRepository, ruleRepository } from '../../../database/repositories';
+import { ruleActions, ruleConditions } from '../../../database/schema';
 import type { ExecutionStatus } from '../../../database/schema/rule-executions';
 import type { TriggerType } from '../../../database/schema/rules';
+import type { Unsubscribe } from '../../../services/event-bus';
+import { AppEvents, eventBus } from '../../../services/event-bus';
+import type { ParsedNotification } from '../../../services/notification/parser';
 import { logRuleEvalMetrics } from '../../../services/performance';
+import type { ActionType, RuleAction } from './actions';
+import { executeActions } from './actions';
+import type { RuleCondition } from './conditions';
+import { evaluateConditions } from './conditions';
+import { getTriggerHandler } from './triggers';
 
 /**
  * Result of evaluating and executing a single rule against a notification.
@@ -50,7 +50,7 @@ interface CachedRule {
 }
 
 /** Cache TTL in milliseconds — rules are re-fetched after this period */
-const RULE_CACHE_TTL_MS = 5000;
+const RULE_CACHE_TTL_MS = 1000 * 60 * 30;
 
 /**
  * Rule evaluation engine.
@@ -227,12 +227,12 @@ class RuleEngine implements IRuleEngine {
 
     if (ruleIds.length === 0) return map;
 
-    // Load all conditions for active rules
-    const allRows = await db.select().from(ruleConditions);
-    const activeSet = new Set(ruleIds);
+    // Load all conditions once, then filter in-memory for compatibility with
+    // lightweight test doubles and simple query builders.
+    const rows = await db.select().from(ruleConditions);
+    const filteredRows = rows.filter((row) => ruleIds.includes(row.ruleId));
 
-    for (const row of allRows) {
-      if (!activeSet.has(row.ruleId)) continue;
+    for (const row of filteredRows) {
       const existing = map.get(row.ruleId);
       if (existing) {
         existing.push(row);
@@ -255,12 +255,12 @@ class RuleEngine implements IRuleEngine {
 
     if (ruleIds.length === 0) return map;
 
-    // Load all actions for active rules
-    const allRows = await db.select().from(ruleActions);
-    const activeSet = new Set(ruleIds);
+    // Load all actions once, then filter in-memory for compatibility with
+    // lightweight test doubles and simple query builders.
+    const rows = await db.select().from(ruleActions);
+    const filteredRows = rows.filter((row) => ruleIds.includes(row.ruleId));
 
-    for (const row of allRows) {
-      if (!activeSet.has(row.ruleId)) continue;
+    for (const row of filteredRows) {
       const existing = map.get(row.ruleId);
       if (existing) {
         existing.push(row);

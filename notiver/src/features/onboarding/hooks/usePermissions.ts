@@ -1,4 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import {
+    isUsingNativeModule,
+    notificationListenerBridge,
+} from '@/src/native/notification-listener';
+import { useCallback, useEffect, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 
 export type PermissionType =
@@ -80,10 +84,15 @@ export function usePermissions() {
   const checkPermissions = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // Placeholder permission checks — will be replaced with native module bridge calls
-      // when NotificationListenerBridge and AccessibilityBridge are implemented (Task 7.1, 13.1)
+      const notificationAccess =
+        Platform.OS === 'android' && isUsingNativeModule
+          ? ((await notificationListenerBridge.isRunning())
+              ? 'granted'
+              : 'not_granted')
+          : 'not_granted';
+
       const statuses: Record<PermissionType, PermissionStatus> = {
-        notification_access: 'not_granted', // TODO: NativeModules.NotificationListenerBridge.isRunning()
+        notification_access: notificationAccess,
         accessibility_service: 'not_granted', // TODO: NativeModules.AccessibilityBridge.isEnabled()
         battery_optimization: 'not_granted', // TODO: Check via PowerManager.isIgnoringBatteryOptimizations
         alarm_permission: 'not_granted', // TODO: Check via AlarmManager.canScheduleExactAlarms (API 31+)

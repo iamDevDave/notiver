@@ -1,8 +1,8 @@
-import React from 'react';
-import { Switch } from 'react-native';
-import type { LucideIcon } from 'lucide-react-native';
 import { ListItem } from '@/src/shared/components/molecules/ListItem';
 import { colors } from '@/src/theme/tokens';
+import type { LucideIcon } from 'lucide-react-native';
+import React from 'react';
+import { Switch } from 'react-native';
 
 export interface SettingToggleProps {
   /** Title text */
@@ -39,6 +39,7 @@ export function SettingToggle({
       subtitle={subtitle}
       leftIcon={icon}
       leftIconColor={iconColor}
+      onPress={disabled ? undefined : () => onValueChange(!value)}
       trailingElement={
         <Switch
           value={value}

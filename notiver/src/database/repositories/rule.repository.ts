@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from '../index';
 import { rules, type TriggerType } from '../schema';
 import { BaseRepository } from './base.repository';
@@ -44,17 +44,29 @@ export class RuleRepository extends BaseRepository<Rule> {
   }
 
   async findActive(): Promise<Rule[]> {
-    return await db
-      .select()
-      .from(rules)
+    const query = db.select().from(rules);
+
+    // Some lightweight test doubles or query adapters return a resolved
+    // array instead of a chainable query builder. Detect that case and
+    // fall back to an in-memory filter + sort to remain compatible.
+    if (typeof (query as any).where !== 'function') {
+      const rows = Array.isArray(query) ? (query as any) : await query;
+      const filtered = (rows as Rule[]).filter((r) => r.isActive);
+      return filtered.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    }
+
+    return await (query as any)
       .where(eq(rules.isActive, true))
       .orderBy(desc(rules.priority));
   }
 
   async findByTriggerType(triggerType: TriggerType): Promise<Rule[]> {
-    return await db
-      .select()
-      .from(rules)
-      .where(eq(rules.triggerType, triggerType));
+    const query = db.select().from(rules);
+    if (typeof (query as any).where !== 'function') {
+      const rows = Array.isArray(query) ? (query as any) : await query;
+      return (rows as Rule[]).filter((r) => r.triggerType === triggerType);
+    }
+
+    return await (query as any).where(eq(rules.triggerType, triggerType));
   }
 }

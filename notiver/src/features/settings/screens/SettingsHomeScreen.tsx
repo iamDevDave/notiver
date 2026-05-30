@@ -1,45 +1,67 @@
-import React, { useCallback } from 'react';
-import { View, Text, Linking } from 'react-native';
-import {
-  Sun,
-  Moon,
-  Globe,
-  Bell,
-  Volume2,
-  Vibrate,
-  Zap,
-  Hash,
-  Database,
-  Download,
-  Shield,
-  BarChart3,
-  Info,
-  FileText,
-  HelpCircle,
-} from 'lucide-react-native';
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
+import {
+    BarChart3,
+    Bell,
+    Database,
+    Download,
+    FileText,
+    Globe,
+    Hash,
+    HelpCircle,
+    Info,
+    Moon,
+    Shield,
+    ShieldCheck,
+    Smartphone,
+    Vibrate,
+    Volume2,
+    Zap,
+} from 'lucide-react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Linking, Platform, Text, View } from 'react-native';
 
-import { Screen } from '@/src/shared/components/templates/Screen';
+import { osInfoModule, type SystemInfo } from '@/src/native/os-info';
 import { Header } from '@/src/shared/components/templates/Header';
+import { Screen } from '@/src/shared/components/templates/Screen';
 import { Section } from '@/src/shared/components/templates/Section';
-import { useSettings, useUpdateSetting, SETTINGS_KEYS } from '../hooks/use-settings';
+import { colors } from '@/src/theme/tokens';
+
 import { SettingToggle } from '../components/SettingToggle';
 import { SettingValue } from '../components/SettingValue';
-import { colors } from '@/src/theme/tokens';
+import { SETTINGS_KEYS, useSettings, useUpdateSetting } from '../hooks/use-settings';
 
 const DATA_RETENTION_OPTIONS = ['7', '14', '30', '60', '90'];
 const EXPORT_FREQUENCY_OPTIONS = ['daily', 'weekly', 'monthly', 'never'];
 const MAX_RULES_OPTIONS = ['10', '20', '50', '100'];
 
+function formatDuration(milliseconds: number | null): string {
+  if (milliseconds === null) return 'Loading...';
+
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+}
+
 /**
  * Settings home screen with sections: General, Notifications, Automation,
- * Analytics, Privacy, and About.
+ * Analytics, Privacy, System, Permissions, and About.
  *
  * Validates: Requirements 14.1, 14.2
  */
 export function SettingsHomeScreen() {
+  const router = useRouter();
   const { data: settings, isLoading } = useSettings();
   const { mutate: updateSetting } = useUpdateSetting();
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
 
   const getSetting = useCallback(
     (key: string, defaultValue: string = ''): string => {
@@ -57,13 +79,6 @@ export function SettingsHomeScreen() {
     [settings]
   );
 
-  const toggleSetting = useCallback(
-    (key: string, currentValue: boolean) => {
-      updateSetting({ key, value: (!currentValue).toString() });
-    },
-    [updateSetting]
-  );
-
   const cycleSetting = useCallback(
     (key: string, options: string[], currentValue: string) => {
       const currentIndex = options.indexOf(currentValue);
@@ -73,7 +88,43 @@ export function SettingsHomeScreen() {
     [updateSetting]
   );
 
+  useEffect(() => {
+    let mounted = true;
+
+    const refreshSystemInfo = async () => {
+      const info = await osInfoModule.getSystemInfo();
+      if (mounted) {
+        setSystemInfo(info);
+      }
+    };
+
+    void refreshSystemInfo();
+    const intervalId = setInterval(() => {
+      void refreshSystemInfo();
+    }, 1000);
+
+    return () => {
+      mounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+  const isAndroid = Platform.OS === 'android';
+
+  const systemSummary = useMemo(() => {
+    return {
+      osLabel: systemInfo?.osName ?? (isAndroid ? 'Android' : Platform.OS),
+      osVersion: systemInfo?.osVersion ?? String(Platform.Version),
+      apiLevel: String(systemInfo?.sdkInt ?? Platform.Version),
+      deviceLabel:
+        [systemInfo?.manufacturer, systemInfo?.brand, systemInfo?.model]
+          .filter(Boolean)
+          .join(' ') || (isAndroid ? 'Android device' : 'Current device'),
+      uptimeMs: systemInfo?.uptimeMs ?? null,
+      bootTimeMs: systemInfo?.bootTimeMs ?? null,
+    };
+  }, [isAndroid, systemInfo]);
 
   if (isLoading) {
     return (
@@ -91,7 +142,6 @@ export function SettingsHomeScreen() {
       <Header title="Settings" />
 
       <View className="px-lg pt-md pb-xxxl">
-        {/* General Section */}
         <Section title="General" subtitle="App appearance and language">
           <View className="bg-surface-card rounded-cards overflow-hidden">
             <SettingToggle
@@ -117,7 +167,6 @@ export function SettingsHomeScreen() {
           </View>
         </Section>
 
-        {/* Notifications Section */}
         <Section title="Notifications" subtitle="Notification preferences and alerts">
           <View className="bg-surface-card rounded-cards overflow-hidden">
             <SettingValue
@@ -152,7 +201,6 @@ export function SettingsHomeScreen() {
           </View>
         </Section>
 
-        {/* Automation Section */}
         <Section title="Automation" subtitle="Rule engine configuration">
           <View className="bg-surface-card rounded-cards overflow-hidden">
             <SettingToggle
@@ -183,7 +231,6 @@ export function SettingsHomeScreen() {
           </View>
         </Section>
 
-        {/* Analytics Section */}
         <Section title="Analytics" subtitle="Data retention and export settings">
           <View className="bg-surface-card rounded-cards overflow-hidden">
             <SettingValue
@@ -218,7 +265,6 @@ export function SettingsHomeScreen() {
           </View>
         </Section>
 
-        {/* Privacy Section */}
         <Section title="Privacy" subtitle="Data collection preferences">
           <View className="bg-surface-card rounded-cards overflow-hidden">
             <SettingToggle
@@ -245,7 +291,67 @@ export function SettingsHomeScreen() {
           </View>
         </Section>
 
-        {/* About Section */}
+        <Section title="System" subtitle="Android device and OS data">
+          <View className="bg-surface-card rounded-cards overflow-hidden">
+            <SettingValue
+              title="Device"
+              subtitle="Manufacturer and model"
+              icon={Smartphone}
+              iconColor={colors.text.muted}
+              value={systemSummary.deviceLabel}
+            />
+            <View className="h-px bg-border-subtle mx-lg" />
+            <SettingValue
+              title="OS"
+              subtitle="Operating system and version"
+              icon={Info}
+              iconColor={colors.text.muted}
+              value={`${systemSummary.osLabel} ${systemSummary.osVersion}`}
+            />
+            <View className="h-px bg-border-subtle mx-lg" />
+            <SettingValue
+              title="API Level"
+              subtitle="Android platform version"
+              icon={ShieldCheck}
+              iconColor={colors.text.muted}
+              value={systemSummary.apiLevel}
+            />
+            <View className="h-px bg-border-subtle mx-lg" />
+            <SettingValue
+              title="Uptime"
+              subtitle="Refreshes while the app is open"
+              icon={Shield}
+              iconColor={colors.text.muted}
+              value={formatDuration(systemSummary.uptimeMs)}
+            />
+            <View className="h-px bg-border-subtle mx-lg" />
+            <SettingValue
+              title="Boot Time"
+              subtitle="Estimated system start time"
+              icon={Database}
+              iconColor={colors.text.muted}
+              value={formatDuration(systemSummary.bootTimeMs)}
+            />
+          </View>
+        </Section>
+
+        <Section title="Permissions" subtitle="Open the Android permission center">
+          <View className="bg-surface-card rounded-cards overflow-hidden">
+            <SettingValue
+              title="Android Permissions"
+              subtitle="Notification access, accessibility, alarms, and battery optimization"
+              icon={Shield}
+              iconColor={colors.accent.primary}
+              value="Open"
+              showChevron
+              onPress={() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                router.push('/permissions' as any);
+              }}
+            />
+          </View>
+        </Section>
+
         <Section title="About" subtitle="App information and support">
           <View className="bg-surface-card rounded-cards overflow-hidden">
             <SettingValue

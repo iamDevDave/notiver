@@ -40,6 +40,11 @@ export interface INotificationListenerBridge {
   /** Request the system to restart the NotificationListenerService */
   requestRestart(): Promise<void>;
   /**
+   * Emit a demo notification when running in mock mode.
+   * Native implementations may ignore this.
+   */
+  emitDemoNotification?(): void;
+  /**
    * Subscribe to incoming notifications.
    * @param handler - Callback invoked with each raw notification
    * @returns Unsubscribe function to stop receiving notifications

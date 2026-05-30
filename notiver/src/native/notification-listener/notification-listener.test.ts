@@ -9,10 +9,12 @@ import type { RawNotification } from './types';
 describe('MockNotificationListenerBridge', () => {
   beforeEach(() => {
     // Reset any state between tests
+    mockNotificationListenerBridge.resetMockState();
     jest.useFakeTimers();
   });
 
   afterEach(() => {
+    mockNotificationListenerBridge.resetMockState();
     jest.useRealTimers();
   });
 
@@ -43,10 +45,12 @@ describe('MockNotificationListenerBridge', () => {
       const handler = jest.fn();
       const unsubscribe = mockNotificationListenerBridge.onNotificationReceived(handler);
 
-      // Advance timer to trigger mock emission
-      jest.advanceTimersByTime(10_000);
-
       expect(handler).toHaveBeenCalledTimes(1);
+
+      // Advance timer to trigger another mock emission
+      jest.advanceTimersByTime(8_000);
+
+      expect(handler).toHaveBeenCalledTimes(2);
       const notification: RawNotification = handler.mock.calls[0][0];
       expect(notification).toHaveProperty('key');
       expect(notification).toHaveProperty('packageName');
@@ -67,14 +71,16 @@ describe('MockNotificationListenerBridge', () => {
       const handler = jest.fn();
       const unsubscribe = mockNotificationListenerBridge.onNotificationReceived(handler);
 
-      jest.advanceTimersByTime(10_000);
       expect(handler).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(8_000);
+      expect(handler).toHaveBeenCalledTimes(2);
 
       unsubscribe();
 
-      jest.advanceTimersByTime(10_000);
+      jest.advanceTimersByTime(8_000);
       // Should not receive more notifications after unsubscribe
-      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(2);
     });
 
     it('should support multiple handlers', () => {
@@ -84,9 +90,12 @@ describe('MockNotificationListenerBridge', () => {
       const unsub1 = mockNotificationListenerBridge.onNotificationReceived(handler1);
       const unsub2 = mockNotificationListenerBridge.onNotificationReceived(handler2);
 
-      jest.advanceTimersByTime(10_000);
-
       expect(handler1).toHaveBeenCalledTimes(1);
+      expect(handler2).toHaveBeenCalledTimes(0);
+
+      jest.advanceTimersByTime(8_000);
+
+      expect(handler1).toHaveBeenCalledTimes(2);
       expect(handler2).toHaveBeenCalledTimes(1);
 
       unsub1();
@@ -100,11 +109,14 @@ describe('MockNotificationListenerBridge', () => {
       const unsub1 = mockNotificationListenerBridge.onNotificationReceived(handler1);
       const unsub2 = mockNotificationListenerBridge.onNotificationReceived(handler2);
 
+      expect(handler1).toHaveBeenCalledTimes(1);
+      expect(handler2).toHaveBeenCalledTimes(0);
+
       unsub1();
 
-      jest.advanceTimersByTime(10_000);
+      jest.advanceTimersByTime(8_000);
 
-      expect(handler1).not.toHaveBeenCalled();
+      expect(handler1).toHaveBeenCalledTimes(1);
       expect(handler2).toHaveBeenCalledTimes(1);
 
       unsub2();
@@ -116,6 +128,8 @@ describe('MockNotificationListenerBridge', () => {
       const handler = jest.fn();
       const unsubscribe = mockNotificationListenerBridge.onNotificationReceived(handler);
 
+      expect(handler).toHaveBeenCalledTimes(1);
+
       mockNotificationListenerBridge.emitMockNotification({
         key: 'test_key',
         packageName: 'com.test.app',
@@ -124,13 +138,26 @@ describe('MockNotificationListenerBridge', () => {
         content: 'Test Content',
       });
 
-      expect(handler).toHaveBeenCalledTimes(1);
-      const notification = handler.mock.calls[0][0];
+      expect(handler).toHaveBeenCalledTimes(2);
+      const notification = handler.mock.calls[1][0];
       expect(notification.key).toBe('test_key');
       expect(notification.packageName).toBe('com.test.app');
       expect(notification.appName).toBe('Test App');
       expect(notification.title).toBe('Test Title');
       expect(notification.content).toBe('Test Content');
+
+      unsubscribe();
+    });
+
+    it('should emit a demo notification when requested', () => {
+      const handler = jest.fn();
+      const unsubscribe = mockNotificationListenerBridge.onNotificationReceived(handler);
+
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      mockNotificationListenerBridge.emitDemoNotification?.();
+
+      expect(handler).toHaveBeenCalledTimes(2);
 
       unsubscribe();
     });

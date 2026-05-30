@@ -14,8 +14,8 @@
  * @validates Requirements 15.4, 15.7
  */
 
-import React, { useEffect, useRef } from 'react';
 import { initializeApp, teardownApp } from '@/src/services/app/app-init';
+import React, { useEffect, useRef } from 'react';
 
 interface AppInitProviderProps {
   children: React.ReactNode;
@@ -31,7 +31,9 @@ export function AppInitProvider({ children }: AppInitProviderProps) {
     }
 
     return () => {
-      teardownApp();
+      if (!__DEV__) {
+        teardownApp();
+      }
       initialized.current = false;
     };
   }, []);

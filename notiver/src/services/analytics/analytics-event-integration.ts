@@ -6,11 +6,11 @@
  * Validates: Requirement 12.5
  */
 
-import { eventBus, AppEvents } from '@/src/services/event-bus';
-import { analyticsService } from './index';
 import { queryClient } from '@/src/providers/query-provider';
-import type { AnalyticsEvent } from './types';
 import type { Unsubscribe } from '@/src/services/event-bus';
+import { AppEvents, eventBus } from '@/src/services/event-bus';
+import { analyticsService } from './index';
+import type { AnalyticsEvent } from './types';
 
 /** Query key prefixes that should be invalidated on analytics updates */
 const ANALYTICS_QUERY_KEYS = ['analytics', 'dashboard'] as const;

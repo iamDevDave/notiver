@@ -1,5 +1,5 @@
+import { AppEvents, eventBus } from '../../../services/event-bus';
 import { classificationService } from './classification-service';
-import { eventBus, AppEvents } from '../../../services/event-bus';
 
 // Mock the repositories
 jest.mock('../../../database/repositories', () => ({
@@ -16,9 +16,9 @@ jest.mock('../../../database/repositories', () => ({
 }));
 
 import {
-  aiPredictionRepository,
-  notificationRepository,
-  settingsRepository,
+    aiPredictionRepository,
+    notificationRepository,
+    settingsRepository,
 } from '../../../database/repositories';
 
 const mockedSettingsGet = settingsRepository.get as jest.MockedFunction<
@@ -141,12 +141,15 @@ describe('ClassificationService', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    expect(classifiedHandler).toHaveBeenCalledWith({
-      notificationId: 'notif-3',
-      category: 'promotion',
-      confidence: expect.any(Number),
-      matchedKeywords: expect.arrayContaining(['sale']),
-    });
+    expect(classifiedHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'notif-3',
+        notificationId: 'notif-3',
+        category: 'promotion',
+        confidence: expect.any(Number),
+        matchedKeywords: expect.arrayContaining(['sale']),
+      })
+    );
 
     unsub();
   });

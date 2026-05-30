@@ -1,13 +1,18 @@
-import React from 'react';
-import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+    isUsingNativeModule,
+    notificationListenerBridge,
+} from '@/src/native/notification-listener';
+import { Button } from '@/src/shared/components/atoms/Button';
 import { Screen, Section } from '@/src/shared/components/templates';
-import { DashboardHeader } from '../components/DashboardHeader';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Text, View } from 'react-native';
 import { AnalyticsCards } from '../components/AnalyticsCards';
-import { NotificationTrendChart } from '../components/NotificationTrendChart';
-import { TopAppsChart } from '../components/TopAppsChart';
+import { DashboardHeader } from '../components/DashboardHeader';
 import { FocusTrendChart } from '../components/FocusTrendChart';
+import { NotificationTrendChart } from '../components/NotificationTrendChart';
 import { RecentActivityFeed } from '../components/RecentActivityFeed';
+import { TopAppsChart } from '../components/TopAppsChart';
 import { useDashboardAnalytics } from '../hooks/use-dashboard-analytics';
 import { useDashboardCharts } from '../hooks/use-dashboard-charts';
 import { useRecentActivity } from '../hooks/use-recent-activity';
@@ -35,6 +40,10 @@ export function DashboardScreen() {
     router.push('/(tabs)/notifications' as any);
   };
 
+  const handleGenerateDemoNotification = () => {
+    notificationListenerBridge.emitDemoNotification?.();
+  };
+
   return (
     <Screen scrollable edges={['top']}>
       {/* Header with avatar, greeting, search, and notification bell */}
@@ -43,6 +52,17 @@ export function DashboardScreen() {
         onSearchPress={handleSearchPress}
         onNotificationPress={handleNotificationPress}
       />
+
+      {!isUsingNativeModule ? (
+        <View className="px-lg pb-sm">
+          <View className="flex-row items-center self-start rounded-full border border-accent-primary/30 bg-accent-primary/10 px-3 py-1.5">
+            <View className="mr-2 h-2 w-2 rounded-full bg-accent-primary" />
+            <Text className="text-accent-primary text-caption font-semibold">
+              Expo Go demo mode
+            </Text>
+          </View>
+        </View>
+      ) : null}
 
       {/* Analytics stat cards section */}
       <View className="mt-md">
@@ -71,6 +91,24 @@ export function DashboardScreen() {
 
       {/* Recent Activity feed */}
       <View className="mt-sm px-lg mb-xl">
+        {!isUsingNativeModule ? (
+          <View className="mb-md rounded-cards border border-border bg-surface-card p-md">
+            <Text className="text-text-primary text-body font-semibold">
+              Expo Go demo mode
+            </Text>
+            <Text className="text-text-muted text-caption mt-xs mb-md leading-5">
+              Real OS notifications require a dev build. Use this button to
+              generate a sample notification and refresh the dashboard feed.
+            </Text>
+            <Button
+              label="Generate demo notification"
+              variant="secondary"
+              size="md"
+              onPress={handleGenerateDemoNotification}
+            />
+          </View>
+        ) : null}
+
         <RecentActivityFeed
           items={activityItems}
           isLoading={activityLoading}

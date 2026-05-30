@@ -65,6 +65,17 @@ class MockNotificationListenerBridge implements INotificationListenerBridge {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private _isRunning = false;
 
+  private emitGeneratedNotification(): void {
+    const notification = generateMockNotification();
+    this.handlers.forEach((handler) => {
+      try {
+        handler(notification);
+      } catch (error) {
+        console.error('[MockNotificationListener] Handler error:', error);
+      }
+    });
+  }
+
   async isRunning(): Promise<boolean> {
     return this._isRunning;
   }
@@ -91,21 +102,15 @@ class MockNotificationListenerBridge implements INotificationListenerBridge {
     };
   }
 
-  /** Start emitting mock notifications every 10 seconds */
+  /** Start emitting mock notifications every 8 seconds */
   private startEmitting(): void {
     if (this.intervalId !== null) return;
 
     this._isRunning = true;
+    this.emitGeneratedNotification();
     this.intervalId = setInterval(() => {
-      const notification = generateMockNotification();
-      this.handlers.forEach((handler) => {
-        try {
-          handler(notification);
-        } catch (error) {
-          console.error('[MockNotificationListener] Handler error:', error);
-        }
-      });
-    }, 10_000);
+      this.emitGeneratedNotification();
+    }, 8_000);
   }
 
   /** Stop emitting mock notifications */
@@ -127,6 +132,15 @@ class MockNotificationListenerBridge implements INotificationListenerBridge {
         console.error('[MockNotificationListener] Handler error:', error);
       }
     });
+  }
+
+  emitDemoNotification(): void {
+    this.emitGeneratedNotification();
+  }
+
+  resetMockState(): void {
+    this.stopEmitting();
+    this.handlers.clear();
   }
 }
 

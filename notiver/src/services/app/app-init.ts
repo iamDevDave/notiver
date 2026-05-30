@@ -15,20 +15,20 @@
  * @validates Requirements 15.4, 15.7
  */
 
-import { notificationService } from '@/src/services/notification';
 import { classificationService } from '@/src/features/ai/engine';
-import { ruleEngine } from '@/src/features/rules/engine/engine';
 import {
-  startFocusNotificationIntegration,
-  stopFocusNotificationIntegration,
+    startFocusNotificationIntegration,
+    stopFocusNotificationIntegration,
 } from '@/src/features/focus/engine';
-import {
-  initAnalyticsEventIntegration,
-  disposeAnalyticsEventIntegration,
-} from '@/src/services/analytics';
-import { eventBus, AppEvents } from '@/src/services/event-bus';
+import { ruleEngine } from '@/src/features/rules/engine/engine';
 import { queryClient } from '@/src/providers/query-provider';
+import {
+    disposeAnalyticsEventIntegration,
+    initAnalyticsEventIntegration,
+} from '@/src/services/analytics';
 import type { Unsubscribe } from '@/src/services/event-bus';
+import { AppEvents, eventBus } from '@/src/services/event-bus';
+import { notificationService } from '@/src/services/notification';
 
 /**
  * Query keys that should be invalidated when notifications change.
@@ -47,6 +47,20 @@ const FOCUS_QUERY_KEYS = ['focus-sessions', 'focus-active'] as const;
 
 /** Tracks whether the app has been initialized */
 let isInitialized = false;
+
+const globalAppInitState = globalThis as typeof globalThis & {
+  __notiverAppInitState?: {
+    isInitialized: boolean;
+  };
+};
+
+function getGlobalInitState(): { isInitialized: boolean } {
+  if (!globalAppInitState.__notiverAppInitState) {
+    globalAppInitState.__notiverAppInitState = { isInitialized: false };
+  }
+
+  return globalAppInitState.__notiverAppInitState;
+}
 
 /** Stores cache invalidation unsubscribe functions */
 let cacheInvalidationSubscriptions: Unsubscribe[] = [];
@@ -158,7 +172,9 @@ function teardownCacheInvalidation(): void {
  * before any notifications flow through the pipeline.
  */
 export function initializeApp(): void {
-  if (isInitialized) {
+  const initState = getGlobalInitState();
+
+  if (isInitialized || initState.isInitialized) {
     console.warn('[AppInit] Already initialized. Call teardownApp() first.');
     return;
   }
@@ -184,6 +200,7 @@ export function initializeApp(): void {
   notificationService.start();
 
   isInitialized = true;
+  initState.isInitialized = true;
 
   const duration = performance.now() - startTime;
   console.log(`[AppInit] All integrations wired in ${duration.toFixed(1)}ms`);
@@ -194,7 +211,9 @@ export function initializeApp(): void {
  * Call this on app shutdown or for testing cleanup.
  */
 export function teardownApp(): void {
-  if (!isInitialized) {
+  const initState = getGlobalInitState();
+
+  if (!isInitialized && !initState.isInitialized) {
     return;
   }
 
@@ -207,6 +226,7 @@ export function teardownApp(): void {
   stopFocusNotificationIntegration();
 
   isInitialized = false;
+  initState.isInitialized = false;
   console.log('[AppInit] All integrations torn down');
 }
 
@@ -214,5 +234,5 @@ export function teardownApp(): void {
  * Check if the app has been initialized.
  */
 export function getIsInitialized(): boolean {
-  return isInitialized;
+  return isInitialized || getGlobalInitState().isInitialized;
 }

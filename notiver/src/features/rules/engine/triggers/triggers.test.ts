@@ -225,6 +225,12 @@ describe('TimeTriggerHandler', () => {
     expect(handler.evaluate(notification, config)).toBe(false);
   });
 
+  it('returns false when receivedAt is missing or invalid', () => {
+    const config = { startTime: '09:00', endTime: '17:00' };
+    expect(handler.evaluate(createNotification({ receivedAt: undefined as any }), config)).toBe(false);
+    expect(handler.evaluate(createNotification({ receivedAt: new Date('invalid') }), config)).toBe(false);
+  });
+
   it('returns false for invalid time format', () => {
     const notification = createNotification();
     const config = { startTime: 'invalid', endTime: '17:00' };

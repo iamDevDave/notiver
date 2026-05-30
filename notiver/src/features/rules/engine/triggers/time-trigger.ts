@@ -1,5 +1,5 @@
 import type { ParsedNotification } from '../../../../services/notification/parser';
-import type { TriggerHandler, TimeTriggerConfig } from './types';
+import type { TimeTriggerConfig, TriggerHandler } from './types';
 
 /**
  * Parses a time string in HH:mm format to total minutes since midnight.
@@ -46,6 +46,10 @@ export class TimeTriggerHandler implements TriggerHandler {
     const endMinutes = parseTimeToMinutes(triggerConfig.endTime);
 
     if (startMinutes === null || endMinutes === null) {
+      return false;
+    }
+
+    if (!(notification.receivedAt instanceof Date) || Number.isNaN(notification.receivedAt.getTime())) {
       return false;
     }
 

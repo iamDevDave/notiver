@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text } from 'react-native';
-import { ChevronRight } from 'lucide-react-native';
-import type { LucideIcon } from 'lucide-react-native';
 import { ListItem } from '@/src/shared/components/molecules/ListItem';
 import { colors } from '@/src/theme/tokens';
+import type { LucideIcon } from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
+import React from 'react';
+import { Text, View } from 'react-native';
 
 export interface SettingValueProps {
   /** Title text */
@@ -49,7 +49,7 @@ export function SettingValue({
               {value}
             </Text>
           ) : null}
-          {showChevron ? (
+          {showChevron && onPress ? (
             <ChevronRight size={18} color={colors.text.muted} />
           ) : null}
         </View>

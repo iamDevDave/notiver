@@ -5,8 +5,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import '../global.css';
 
-import { ThemeProvider } from '@/src/theme';
 import { AppProviders } from '@/src/providers';
+import { ThemeProvider } from '@/src/theme';
 import { colors } from '@/src/theme/tokens';
 
 const customDarkTheme = {
@@ -22,7 +22,7 @@ const customDarkTheme = {
 };
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: 'index',
 };
 
 export default function RootLayout() {
@@ -65,6 +65,14 @@ export default function RootLayout() {
                 options={{
                   presentation: 'modal',
                   animation: 'slide_from_bottom',
+                }}
+              />
+
+              <Stack.Screen
+                name="permissions"
+                options={{
+                  presentation: 'modal',
+                  animation: 'fade',
                 }}
               />
 

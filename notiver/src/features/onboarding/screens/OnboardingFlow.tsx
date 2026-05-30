@@ -1,13 +1,13 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { View, FlatList, useWindowDimensions, type ViewToken } from 'react-native';
-import { Sparkles, Zap, BarChart3, Brain, Cloud } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { BarChart3, Brain, Cloud, Sparkles, Zap } from 'lucide-react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { FlatList, useWindowDimensions, View, type ViewToken } from 'react-native';
 
+import { Button } from '@/src/shared/components/atoms/Button';
+import { colors } from '@/src/theme/tokens';
 import { OnboardingPage, type OnboardingPageProps } from '../components/OnboardingPage';
 import { ProgressDots } from '../components/ProgressDots';
 import { onboardingStore } from '../store/onboarding.store';
-import { Button } from '@/src/shared/components/atoms/Button';
-import { colors } from '@/src/theme/tokens';
 
 const ONBOARDING_PAGES: OnboardingPageProps[] = [
   {
@@ -37,8 +37,8 @@ const ONBOARDING_PAGES: OnboardingPageProps[] = [
   {
     icon: Cloud,
     iconColor: colors.text.secondary,
-    title: 'Cloud Ready',
-    description: 'Your data, backed up and synced (coming soon)',
+    title: 'Real Data',
+    description: 'See live notifications and activity from your device once permissions are granted',
   },
 ];
 
@@ -65,7 +65,7 @@ export function OnboardingFlow() {
     if (isLastPage) {
       onboardingStore.markCompleted();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      router.replace('/(tabs)' as any);
+      router.replace('/permissions' as any);
     } else {
       flatListRef.current?.scrollToIndex({
         index: activeIndex + 1,
@@ -77,7 +77,7 @@ export function OnboardingFlow() {
   const handleSkip = useCallback(() => {
     onboardingStore.markCompleted();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    router.replace('/(tabs)' as any);
+    router.replace('/permissions' as any);
   }, [router]);
 
   return (
